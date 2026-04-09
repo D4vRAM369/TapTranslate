@@ -179,4 +179,4 @@ El permiso de Servicio de Accesibilidad se usa exclusivamente para pegar el text
 
 ## Licencia
 
-MIT License © 2026 d4vram
+Licencia MIT © 2026 D4vRAM369

@@ -22,6 +22,9 @@
     <string name="hostile_mode_selected_with_count">Apps activas: %1$s… (%2$d en total)</string>
     <string name="copied_to_clipboard_toast">🌎 Traducido y copiado al portapapeles</string>
     <string name="translate_chip_label">TapTranslate</string>
+    <string name="translate_chip_direction_es_en">ES → EN</string>
+    <string name="translate_chip_direction_en_es">EN → ES</string>
+    <string name="no_text_for_manual_translate">Selecciona o copia un texto primero.</string>
     
     <string name="onboarding_title_1">1. Actúa en las sombras</string>
     <string name="onboarding_desc_1">TapTranslate no tiene una pantalla que debas abrir todos los días. Opera como un botón escondido en tu móvil para máxima rapidez.</string>

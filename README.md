@@ -182,4 +182,4 @@ The Accessibility Service permission is used exclusively to paste translated tex
 
 ## License
 
-MIT License © 2026 d4vram
+MIT License © 2026 D4vRAM369

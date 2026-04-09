@@ -1,6 +1,7 @@
 package com.d4vram.taptranslate
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityButtonController
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.BroadcastReceiver
 import android.content.ClipData
@@ -9,11 +10,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
-import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.TypedValue
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
@@ -49,6 +50,7 @@ class AutoPasteService : AccessibilityService() {
     private var lastClipboardText: String? = null
 
     private val hideChipRunnable = Runnable { hideTranslateChip() }
+    private var accessibilityButtonCallback: Any? = null
 
     private val pasteReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -88,6 +90,10 @@ class AutoPasteService : AccessibilityService() {
             flags = flags or
                 AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
                 AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            registerAccessibilityButtonCallbackIfSupported()
         }
     }
 
@@ -129,6 +135,9 @@ class AutoPasteService : AccessibilityService() {
         super.onDestroy()
         hideTranslateChip()
         clipboardManager.removePrimaryClipChangedListener(clipboardListener)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            unregisterAccessibilityButtonCallbackIfSupported()
+        }
         unregisterReceiver(pasteReceiver)
         motor.cerrarTodo()
         serviceScope.cancel()
@@ -155,7 +164,12 @@ class AutoPasteService : AccessibilityService() {
             }
         }
 
-        return node.text?.toString()?.trim()?.takeIf { it.isNotEmpty() && node.isTextSelectable }
+        val fallbackText = node.text?.toString()?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            fallbackText.takeIf { node.isTextSelectable }
+        } else {
+            fallbackText
+        }
     }
 
     private fun showCandidateForHostileMode(text: String, packageName: String?) {
@@ -166,24 +180,19 @@ class AutoPasteService : AccessibilityService() {
     }
 
     private fun ensureTranslateChip() {
-        if (chipView != null) return
-
-        val textView = TextView(this).apply {
-            text = getString(R.string.translate_chip_label)
-            setTextColor(0xFFFFFFFF.toInt())
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-            setPadding(dp(18), dp(12), dp(18), dp(12))
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(22).toFloat()
-                setColor(0xDD111827.toInt())
-                setStroke(dp(1), 0x33FFFFFF)
-            }
-            elevation = dp(10).toFloat()
-            isAllCaps = false
-            alpha = 0f
-            setOnClickListener { translateLatestCandidate() }
+        val existingView = chipView
+        if (existingView != null) {
+            bindChipDirection(existingView)
+            return
         }
+
+        val chip = LayoutInflater.from(this)
+            .inflate(R.layout.overlay_translate_chip, null, false)
+            .apply {
+                alpha = 0f
+                setOnClickListener { translateLatestCandidate() }
+            }
+        bindChipDirection(chip)
 
         val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -196,12 +205,16 @@ class AutoPasteService : AccessibilityService() {
         ).apply {
             gravity = Gravity.END or Gravity.BOTTOM
             x = dp(20)
-            y = dp(180)
+            y = dp(210)
         }
 
-        chipView = textView
-        windowManager.addView(textView, layoutParams)
-        textView.animate().alpha(1f).setDuration(150L).start()
+        chipView = chip
+        windowManager.addView(chip, layoutParams)
+        chip.animate()
+            .alpha(1f)
+            .translationYBy(-dp(6).toFloat())
+            .setDuration(180L)
+            .start()
     }
 
     private fun hideTranslateChip() {
@@ -221,7 +234,44 @@ class AutoPasteService : AccessibilityService() {
     private fun translateLatestCandidate() {
         val sourceText = latestCandidateText?.trim().takeIf { !it.isNullOrEmpty() } ?: return
         hideTranslateChip()
+        translateText(sourceText)
+    }
 
+    private fun translateManuallyFromCurrentContext() {
+        val sourceText = resolveCurrentSourceText()
+        if (sourceText.isNullOrBlank()) {
+            showToast(getString(R.string.no_text_for_manual_translate))
+            return
+        }
+
+        translateText(sourceText)
+    }
+
+    private fun resolveCurrentSourceText(): String? {
+        latestCandidateText?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
+
+        findSelectedText(rootInActiveWindow)?.let { return it }
+
+        val focusedNode = rootInActiveWindow?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+            ?: rootInActiveWindow?.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
+        extractSelectedText(focusedNode)?.let { return it }
+
+        return readClipboardText()
+    }
+
+    private fun findSelectedText(node: AccessibilityNodeInfo?): String? {
+        node ?: return null
+
+        extractSelectedText(node)?.let { return it }
+
+        for (index in 0 until node.childCount) {
+            findSelectedText(node.getChild(index))?.let { return it }
+        }
+
+        return null
+    }
+
+    private fun translateText(sourceText: String) {
         serviceScope.launch {
             val sentido = prefs.getSentidoTraduccion()
             val resultado = withContext(Dispatchers.IO) {
@@ -268,10 +318,35 @@ class AutoPasteService : AccessibilityService() {
         }
     }
 
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.O)
+    private fun registerAccessibilityButtonCallbackIfSupported() {
+        val callback = object : AccessibilityButtonController.AccessibilityButtonCallback() {
+            override fun onClicked(controller: AccessibilityButtonController) {
+                translateManuallyFromCurrentContext()
+            }
+        }
+        accessibilityButtonCallback = callback
+        accessibilityButtonController.registerAccessibilityButtonCallback(callback, mainHandler)
+    }
+
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.O)
+    private fun unregisterAccessibilityButtonCallbackIfSupported() {
+        val callback = accessibilityButtonCallback as? AccessibilityButtonController.AccessibilityButtonCallback
+            ?: return
+        accessibilityButtonController.unregisterAccessibilityButtonCallback(callback)
+        accessibilityButtonCallback = null
+    }
+
+    private fun bindChipDirection(chip: View) {
+        val subtitle = chip.findViewById<TextView>(R.id.overlayChipSubtitle)
+        val directionLabel = if (prefs.getSentidoTraduccion() == AppConstants.SENTIDO_ES_EN) {
+            getString(R.string.translate_chip_direction_es_en)
+        } else {
+            getString(R.string.translate_chip_direction_en_es)
+        }
+        subtitle.text = directionLabel
+    }
+
     private fun dp(value: Int): Int =
-        TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            value.toFloat(),
-            resources.displayMetrics
-        ).toInt()
+        (value * resources.displayMetrics.density).toInt()
 }

@@ -23,6 +23,9 @@
     <string name="hostile_mode_selected_with_count">Active apps: %1$s… (%2$d total)</string>
     <string name="copied_to_clipboard_toast">🌎 Translated and copied to clipboard</string>
     <string name="translate_chip_label">TapTranslate</string>
+    <string name="translate_chip_direction_es_en">ES → EN</string>
+    <string name="translate_chip_direction_en_es">EN → ES</string>
+    <string name="no_text_for_manual_translate">Select or copy some text first.</string>
     
     <string name="onboarding_title_1">1. Works in the Shadows</string>
     <string name="onboarding_desc_1">TapTranslate doesn\'t have a main app you need to open daily. It operates uniquely as a hidden context button for max speed.</string>
