@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TapTranslate</string>
+    <string name="process_text_label">TapTranslate</string>
+    <string name="accessibility_desc">Permite a TapTranslate inyectar texto y pegarlo automáticamente en aplicaciones como Reddit o WhatsApp donde los permisos clásicos están censurados.</string>
+</resources>
