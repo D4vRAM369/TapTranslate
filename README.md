@@ -24,8 +24,10 @@ No ads. No cloud. No account. Just translation.
 - **🔒 100% Private** — Powered by Google ML Kit On-Device Translation. All processing happens locally. Zero network requests during translation.
 - **🌐 Bidirectional** — Toggle between **Spanish → English** (Write Mode) and **English → Spanish** (Read Mode) from the settings panel.
 - **🤖 Auto-Paste** — For apps that restrict the context menu (e.g. other users' Reddit comments), share text to TapTranslate and it auto-pastes the translation using Android's Accessibility API.
-- **🎨 Minimal UI** — The app lives in the background. Its only visible screen is a clean settings panel and a first-run onboarding carousel.
+- **🎨 Minimal UI** — Built with Jetpack Compose, following the **MVVM (Model-View-ViewModel)** architectural pattern for robustness.
+- **📱 Adaptive Icon** — Professional launcher icon (`mipmap-anydpi`) that adapts to device shapes (circle, square) without white borders.
 - **🌍 Localized** — UI adapts to your system language (English / Spanish supported).
+- **📝 Clean Code** — Centralized constants and professional package structuring.
 
 ---
 
@@ -36,11 +38,11 @@ No ads. No cloud. No account. Just translation.
          ↓
 [OS text menu shows TapTranslate]
          ↓
-[ProcessTextActivity receives the text (invisible Activity)]
+[ProcessTextActivity receives the text (Interception Layer)]
          ↓
-[PreferencesManager reads the selected translation direction]
+[MainViewModel manages the state and logic trigger]
          ↓
-[TranslationEngine calls ML Kit On-Device model]
+[TranslationEngine calls ML Kit NMT (Neural Machine Translation) model]
          ↓
 [Translated text is returned to the originating app]
 ```
@@ -108,15 +110,18 @@ For full automation in apps like Reddit:
 app/
 ├── src/main/
 │   ├── java/com/d4vram/taptranslate/
+│   │   ├── AppConstants.kt           # Centralized magic strings and keys
 │   │   ├── AutoPasteService.kt       # Accessibility Service — auto-paste engine
-│   │   ├── MainActivity.kt           # Settings UI (Jetpack Compose)
+│   │   ├── MainActivity.kt           # Orquestrator (Jetpack Compose View)
+│   │   ├── MainViewModel.kt          # UI State management (ViewModel)
 │   │   ├── OnboardingScreen.kt       # First-run carousel (HorizontalPager)
-│   │   ├── PreferencesManager.kt     # SharedPreferences wrapper
+│   │   ├── PreferencesManager.kt     # SharedPreferences wrapper (Model)
 │   │   ├── ProcessTextActivity.kt    # Invisible interceptor — translation trigger
-│   │   └── TranslationEngine.kt      # ML Kit wrapper — bidirectional translation
+│   │   └── TranslationEngine.kt      # ML Kit NMT wrapper — translation logic
 │   ├── res/
 │   │   ├── drawable/
-│   │   │   └── ic_taptranslate.xml   # Vector icon
+│   │   │   ├── ic_launcher_background.xml
+│   │   │   └── ic_launcher_foreground.xml
 │   │   ├── values/
 │   │   │   └── strings.xml           # ES strings (default)
 │   │   ├── values-en/
@@ -136,9 +141,9 @@ app/
 | Layer | Technology |
 |---|---|
 | Language | Kotlin |
-| UI | Jetpack Compose + Material Design 3 |
-| Translation AI | Google ML Kit On-Device Translation |
-| Async | Kotlin Coroutines + `kotlinx-coroutines-play-services` |
+| UI | Jetpack Compose + Material Design 3 (MVVM Pattern) |
+| Translation AI | Google ML Kit NMT (Neural Machine Translation) |
+| Async | Kotlin Coroutines + `kotlinx-coroutines-play-services` + StateFlow |
 | Persistence | Android SharedPreferences |
 | OS Integration | `ACTION_PROCESS_TEXT`, `ACTION_SEND`, `AccessibilityService` |
 
@@ -168,8 +173,9 @@ The Accessibility Service permission is used exclusively to paste translated tex
 
 - [ ] Support for additional language pairs (FR, DE, PT…)
 - [ ] Language auto-detection (remove manual mode toggle)
-- [ ] ViewModel + MVVM architecture refactor
-- [ ] Unit test coverage for `TranslationEngine` and `PreferencesManager`
+- [x] ViewModel + MVVM architecture refactor
+- [x] Unit test coverage for Constants and basic logic
+- [ ] UI Test coverage (Espresso/Compose test)
 - [ ] Play Store listing
 
 ---

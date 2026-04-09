@@ -24,8 +24,10 @@ Sin anuncios. Sin nube. Sin cuenta. Solo traducción.
 - **🔒 100% Privado** — Impulsado por Google ML Kit On-Device Translation. Todo el procesamiento ocurre de manera local. Cero peticiones de red durante la traducción.
 - **🌐 Bidireccional** — Alterna entre **Español → Inglés** (Modo Escribir) e **Inglés → Español** (Modo Leer) desde el panel de ajustes.
 - **🤖 Auto-Pegado** — Para apps que restringen el menú contextual (por ejemplo, comentarios ajenos en Reddit), comparte el texto hacia TapTranslate y éste lo pega automáticamente usando la API de Accesibilidad de Android.
-- **🎨 UI Minimalista** — La app vive en segundo plano. Su única pantalla visible es un panel de ajustes limpio y un carrusel de bienvenida al primer inicio.
+- **🎨 UI Minimalista** — Construida con Jetpack Compose, siguiendo el patrón arquitectónico **MVVM (Model-View-ViewModel)**.
+- **📱 Icono Adaptativo** — Icono profesional (`mipmap-anydpi`) que se adapta a cualquier forma (círculo, cuadrado) sin bordes blancos.
 - **🌍 Localizada** — La interfaz se adapta al idioma del sistema (Inglés y Español soportados).
+- **📝 Código Limpio** — Constantes centralizadas y estructura de paquetes profesional.
 
 ---
 
@@ -36,11 +38,11 @@ Sin anuncios. Sin nube. Sin cuenta. Solo traducción.
          ↓
 [El menú del OS muestra TapTranslate]
          ↓
-[ProcessTextActivity recibe el texto (Actividad invisible)]
+[ProcessTextActivity recibe el texto (Capa de Intercepción)]
          ↓
-[PreferencesManager lee la dirección de traducción seleccionada]
+[MainViewModel gestiona el estado y activa la lógica]
          ↓
-[TranslationEngine llama al modelo On-Device de ML Kit]
+[TranslationEngine llama al motor NMT (Neural Machine Translation) local]
          ↓
 [El texto traducido es devuelto a la app de origen]
 ```
@@ -75,7 +77,7 @@ Para texto de solo lectura en apps cerradas (posts de Reddit, etc.):
 
 1. Clona el repositorio:
    ```bash
-   git clone https://github.com/d4vram/TapTranslate.git
+   git clone https://github.com/D4vRAM369/TapTranslate.git
    cd TapTranslate
    ```
 
@@ -136,9 +138,9 @@ app/
 | Capa | Tecnología |
 |---|---|
 | Lenguaje | Kotlin |
-| UI | Jetpack Compose + Material Design 3 |
-| IA de Traducción | Google ML Kit On-Device Translation |
-| Asincronía | Kotlin Coroutines + `kotlinx-coroutines-play-services` |
+| UI | Jetpack Compose + Material Design 3 (Patrón MVVM) |
+| IA de Traducción | Google ML Kit NMT (Neural Machine Translation) |
+| Asincronía | Kotlin Coroutines + `kotlinx-coroutines-play-services` + StateFlow |
 | Persistencia | Android SharedPreferences |
 | Integración con OS | `ACTION_PROCESS_TEXT`, `ACTION_SEND`, `AccessibilityService` |
 
@@ -168,8 +170,9 @@ El permiso de Servicio de Accesibilidad se usa exclusivamente para pegar el text
 
 - [ ] Soporte para pares de idiomas adicionales (FR, DE, PT…)
 - [ ] Detección automática de idioma (eliminar el selector manual de modo)
-- [ ] Refactorización a arquitectura ViewModel + MVVM
-- [ ] Cobertura de tests unitarios para `TranslationEngine` y `PreferencesManager`
+- [x] Refactorización a arquitectura ViewModel + MVVM
+- [x] Cobertura de tests unitarios de constantes y lógica base
+- [ ] Cobertura de tests de UI (Espresso/Compose Test)
 - [ ] Publicación en Play Store
 
 ---
