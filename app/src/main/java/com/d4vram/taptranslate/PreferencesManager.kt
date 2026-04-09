@@ -23,4 +23,16 @@ class PreferencesManager(context: Context) {
 
     fun setSentidoTraduccion(sentido: String) =
         prefs.edit().putString(AppConstants.KEY_TRANSLATION_DIR, sentido).apply()
+
+    fun isHostileModeEnabled(): Boolean =
+        prefs.getBoolean(AppConstants.KEY_HOSTILE_MODE_ENABLED, false)
+
+    fun setHostileModeEnabled(enabled: Boolean) =
+        prefs.edit().putBoolean(AppConstants.KEY_HOSTILE_MODE_ENABLED, enabled).apply()
+
+    fun getHostilePackages(): Set<String> =
+        prefs.getStringSet(AppConstants.KEY_HOSTILE_PACKAGES, emptySet()).orEmpty()
+
+    fun setHostilePackages(packages: Set<String>) =
+        prefs.edit().putStringSet(AppConstants.KEY_HOSTILE_PACKAGES, packages).apply()
 }

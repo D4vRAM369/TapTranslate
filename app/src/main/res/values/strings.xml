@@ -12,6 +12,16 @@
     <string name="mode_read">Modo Leer (Inglés ➔ Español)</string>
     <string name="warning_title">⚠️ Súper-Autopegado Desactivado</string>
     <string name="warning_desc">Toca aquí para ir a Accesibilidad y permitir que peguemos texto automáticamente en Reddit.</string>
+    <string name="hostile_mode_title">Modo hostil</string>
+    <string name="hostile_mode_desc">Muestra un chip flotante de TapTranslate en las apps que elijas cuando detectemos texto seleccionado o recién copiado.</string>
+    <string name="hostile_mode_choose_apps">Elegir apps objetivo</string>
+    <string name="hostile_mode_done">Listo</string>
+    <string name="hostile_mode_none_selected">Todavía no has seleccionado ninguna app.</string>
+    <string name="hostile_mode_selected_count">%1$d apps seleccionadas</string>
+    <string name="hostile_mode_selected_apps">Apps activas: %1$s</string>
+    <string name="hostile_mode_selected_with_count">Apps activas: %1$s… (%2$d en total)</string>
+    <string name="copied_to_clipboard_toast">🌎 Traducido y copiado al portapapeles</string>
+    <string name="translate_chip_label">TapTranslate</string>
     
     <string name="onboarding_title_1">1. Actúa en las sombras</string>
     <string name="onboarding_desc_1">TapTranslate no tiene una pantalla que debas abrir todos los días. Opera como un botón escondido en tu móvil para máxima rapidez.</string>

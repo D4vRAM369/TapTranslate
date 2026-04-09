@@ -16,6 +16,12 @@ object AppConstants {
     /** Clave para guardar la dirección de traducción seleccionada */
     const val KEY_TRANSLATION_DIR = "SENTIDO_TRADUCCION"
 
+    /** Activa el modo hostil con chip flotante en apps seleccionadas. */
+    const val KEY_HOSTILE_MODE_ENABLED = "HOSTILE_MODE_ENABLED"
+
+    /** Conjunto de paquetes donde el overlay hostil está permitido. */
+    const val KEY_HOSTILE_PACKAGES = "HOSTILE_PACKAGES"
+
     // ─── Valores de dirección de traducción ──────────────────────────────
     /** Español → Inglés (Modo Escribir) */
     const val SENTIDO_ES_EN = "ES_EN"

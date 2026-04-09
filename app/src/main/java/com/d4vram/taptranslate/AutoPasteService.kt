@@ -1,53 +1,277 @@
 package com.d4vram.taptranslate
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.BroadcastReceiver
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.PixelFormat
+import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.os.Looper
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.View
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
- * Accessibility Service that listens for a broadcast and auto-pastes
- * the clipboard content into the focused input field.
+ * AccessibilityService that supports two flows:
+ * 1. Existing autopaste after PROCESS_TEXT / SEND / TRANSLATE.
+ * 2. "Hostile mode" overlay in selected apps when text selection or copy is detected.
  */
 class AutoPasteService : AccessibilityService() {
 
-    // BroadcastReceiver that triggers the paste action when signaled by ProcessTextActivity.
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val motor = TranslationEngine()
+
+    private lateinit var prefs: PreferencesManager
+    private lateinit var clipboardManager: ClipboardManager
+    private lateinit var windowManager: WindowManager
+
+    private var chipView: View? = null
+    private var latestCandidateText: String? = null
+    private var latestPackageName: String? = null
+    private var lastClipboardText: String? = null
+
+    private val hideChipRunnable = Runnable { hideTranslateChip() }
+
     private val pasteReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == "com.d4vram.taptranslate.PASTE_NOW") {
-                // Le damos 200 milisegundos de respiro al sistema para que el menú de 'Compartir' 
-                // se desvanezca y la caja de texto (EditText) de Reddit vuelva a recuperar el foco.
-                Handler(Looper.getMainLooper()).postDelayed({
+            if (intent?.action == AppConstants.ACTION_PASTE_NOW) {
+                mainHandler.postDelayed({
                     pegarTextoAutomaticamente()
                 }, 200)
             }
         }
     }
 
+    private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
+        if (!prefs.isHostileModeEnabled()) return@OnPrimaryClipChangedListener
+
+        val activePackage = rootInActiveWindow?.packageName?.toString() ?: latestPackageName
+        if (!shouldUseHostileMode(activePackage)) return@OnPrimaryClipChangedListener
+
+        val text = readClipboardText() ?: return@OnPrimaryClipChangedListener
+        if (text == lastClipboardText) return@OnPrimaryClipChangedListener
+
+        lastClipboardText = text
+        showCandidateForHostileMode(text, activePackage)
+    }
+
     override fun onServiceConnected() {
         super.onServiceConnected()
+
+        prefs = PreferencesManager(this)
+        clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
         val filter = IntentFilter(AppConstants.ACTION_PASTE_NOW)
         ContextCompat.registerReceiver(this, pasteReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        clipboardManager.addPrimaryClipChangedListener(clipboardListener)
+
+        serviceInfo = serviceInfo.apply {
+            flags = flags or
+                AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
+                AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+        }
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) { /* Not needed */ }
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        event ?: return
 
-    override fun onInterrupt() {}
+        latestPackageName = event.packageName?.toString() ?: latestPackageName
 
-    private fun pegarTextoAutomaticamente() {
-        val targetNode = rootInActiveWindow?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-        targetNode?.performAction(AccessibilityNodeInfo.ACTION_PASTE)
-        // node.recycle() removed — deprecated since API 33. OS manages node lifecycle.
+        if (!shouldUseHostileMode(latestPackageName)) {
+            hideTranslateChip()
+            return
+        }
+
+        when (event.eventType) {
+            AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED -> {
+                val selectedText = extractSelectedText(event.source)
+                if (selectedText.isNullOrBlank()) {
+                    hideTranslateChip()
+                } else {
+                    showCandidateForHostileMode(selectedText, latestPackageName)
+                }
+            }
+
+            AccessibilityEvent.TYPE_VIEW_FOCUSED,
+            AccessibilityEvent.TYPE_VIEW_CLICKED,
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
+            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+                val selectedText = extractSelectedText(event.source)
+                if (!selectedText.isNullOrBlank()) {
+                    showCandidateForHostileMode(selectedText, latestPackageName)
+                }
+            }
+        }
     }
+
+    override fun onInterrupt() = Unit
 
     override fun onDestroy() {
         super.onDestroy()
+        hideTranslateChip()
+        clipboardManager.removePrimaryClipChangedListener(clipboardListener)
         unregisterReceiver(pasteReceiver)
+        motor.cerrarTodo()
+        serviceScope.cancel()
     }
+
+    private fun shouldUseHostileMode(packageName: String?): Boolean {
+        if (!prefs.isHostileModeEnabled()) return false
+        val targetPackage = packageName ?: return false
+        return prefs.getHostilePackages().contains(targetPackage)
+    }
+
+    private fun extractSelectedText(node: AccessibilityNodeInfo?): String? {
+        node ?: return null
+
+        val text = node.text?.toString().orEmpty()
+        val start = node.textSelectionStart
+        val end = node.textSelectionEnd
+
+        if (text.isNotBlank() && start >= 0 && end >= 0 && start != end) {
+            val from = minOf(start, end)
+            val to = maxOf(start, end)
+            if (from < to && to <= text.length) {
+                return text.substring(from, to).trim().takeIf { it.isNotEmpty() }
+            }
+        }
+
+        return node.text?.toString()?.trim()?.takeIf { it.isNotEmpty() && node.isTextSelectable }
+    }
+
+    private fun showCandidateForHostileMode(text: String, packageName: String?) {
+        latestCandidateText = text
+        latestPackageName = packageName
+        ensureTranslateChip()
+        resetChipAutoHide()
+    }
+
+    private fun ensureTranslateChip() {
+        if (chipView != null) return
+
+        val textView = TextView(this).apply {
+            text = getString(R.string.translate_chip_label)
+            setTextColor(0xFFFFFFFF.toInt())
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            setPadding(dp(18), dp(12), dp(18), dp(12))
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dp(22).toFloat()
+                setColor(0xDD111827.toInt())
+                setStroke(dp(1), 0x33FFFFFF)
+            }
+            elevation = dp(10).toFloat()
+            isAllCaps = false
+            alpha = 0f
+            setOnClickListener { translateLatestCandidate() }
+        }
+
+        val layoutParams = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.END or Gravity.BOTTOM
+            x = dp(20)
+            y = dp(180)
+        }
+
+        chipView = textView
+        windowManager.addView(textView, layoutParams)
+        textView.animate().alpha(1f).setDuration(150L).start()
+    }
+
+    private fun hideTranslateChip() {
+        mainHandler.removeCallbacks(hideChipRunnable)
+        chipView?.let { view ->
+            windowManager.removeView(view)
+        }
+        chipView = null
+        latestCandidateText = null
+    }
+
+    private fun resetChipAutoHide() {
+        mainHandler.removeCallbacks(hideChipRunnable)
+        mainHandler.postDelayed(hideChipRunnable, 4500)
+    }
+
+    private fun translateLatestCandidate() {
+        val sourceText = latestCandidateText?.trim().takeIf { !it.isNullOrEmpty() } ?: return
+        hideTranslateChip()
+
+        serviceScope.launch {
+            val sentido = prefs.getSentidoTraduccion()
+            val resultado = withContext(Dispatchers.IO) {
+                motor.translateTexto(sourceText, sentido)
+            }
+
+            resultado.fold(
+                onSuccess = { textoTraducido ->
+                    lastClipboardText = textoTraducido
+                    clipboardManager.setPrimaryClip(
+                        ClipData.newPlainText(getString(R.string.translate_chip_label), textoTraducido)
+                    )
+
+                    mainHandler.postDelayed({
+                        val pasted = pegarTextoAutomaticamente()
+                        if (pasted) {
+                            showToast(getString(R.string.autopaste_toast))
+                        } else {
+                            showToast(getString(R.string.copied_to_clipboard_toast))
+                        }
+                    }, 120)
+                },
+                onFailure = {
+                    showToast(getString(R.string.translation_error))
+                }
+            )
+        }
+    }
+
+    private fun pegarTextoAutomaticamente(): Boolean {
+        val targetNode = rootInActiveWindow?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        return targetNode?.performAction(AccessibilityNodeInfo.ACTION_PASTE) == true
+    }
+
+    private fun readClipboardText(): String? {
+        val clip = clipboardManager.primaryClip ?: return null
+        if (clip.itemCount == 0) return null
+        return clip.getItemAt(0).coerceToText(this)?.toString()?.trim()?.takeIf { it.isNotEmpty() }
+    }
+
+    private fun showToast(message: String) {
+        mainHandler.post {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun dp(value: Int): Int =
+        TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            value.toFloat(),
+            resources.displayMetrics
+        ).toInt()
 }

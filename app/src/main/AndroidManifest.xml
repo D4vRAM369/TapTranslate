@@ -30,6 +30,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.TRANSLATE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
             <!-- Intercepción del menú de Compartir (plan B universal para Reddit) -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

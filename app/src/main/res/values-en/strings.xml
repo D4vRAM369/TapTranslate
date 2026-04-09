@@ -13,6 +13,16 @@
     <string name="mode_read">Read Mode (English ➔ Spanish)</string>
     <string name="warning_title">⚠️ Super-Autopaste Disabled</string>
     <string name="warning_desc">Tap here to go to Accessibility settings and allow us to auto-paste text over Reddit seamlessly.</string>
+    <string name="hostile_mode_title">Hostile mode</string>
+    <string name="hostile_mode_desc">Shows a floating TapTranslate chip inside the apps you choose when selected or freshly copied text is detected.</string>
+    <string name="hostile_mode_choose_apps">Choose target apps</string>
+    <string name="hostile_mode_done">Done</string>
+    <string name="hostile_mode_none_selected">No apps selected yet.</string>
+    <string name="hostile_mode_selected_count">%1$d apps selected</string>
+    <string name="hostile_mode_selected_apps">Active apps: %1$s</string>
+    <string name="hostile_mode_selected_with_count">Active apps: %1$s… (%2$d total)</string>
+    <string name="copied_to_clipboard_toast">🌎 Translated and copied to clipboard</string>
+    <string name="translate_chip_label">TapTranslate</string>
     
     <string name="onboarding_title_1">1. Works in the Shadows</string>
     <string name="onboarding_desc_1">TapTranslate doesn\'t have a main app you need to open daily. It operates uniquely as a hidden context button for max speed.</string>

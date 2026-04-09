@@ -23,12 +23,20 @@ class ProcessTextActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val textoMenuContextual = intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
-        val textoCompartido = intent.getStringExtra(Intent.EXTRA_TEXT)
-        val textoSeleccionado = textoMenuContextual ?: textoCompartido
+        val textoSeleccionado = when (intent.action) {
+            Intent.ACTION_PROCESS_TEXT ->
+                intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
+            Intent.ACTION_TRANSLATE ->
+                intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
+            Intent.ACTION_SEND ->
+                intent.getStringExtra(Intent.EXTRA_TEXT)
+            else ->
+                intent.getCharSequenceExtra(Intent.EXTRA_PROCESS_TEXT)?.toString()
+                    ?: intent.getStringExtra(Intent.EXTRA_TEXT)
+        }
 
-        val esSoloLectura = intent.getBooleanExtra(Intent.EXTRA_PROCESS_TEXT_READONLY, false)
-                || intent.action == Intent.ACTION_SEND
+        val esSoloLectura = intent.action != Intent.ACTION_PROCESS_TEXT
+                || intent.getBooleanExtra(Intent.EXTRA_PROCESS_TEXT_READONLY, false)
 
         if (textoSeleccionado.isNullOrBlank()) {
             Toast.makeText(this, getString(R.string.no_selected_text), Toast.LENGTH_SHORT).show()

@@ -6,8 +6,13 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.clickable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 /**
  * [Profe - PBL Fix #3]: MainActivity ahora es solo un orquestador.
@@ -40,7 +44,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val prefs = PreferencesManager(this)
-        viewModel.init(prefs)
+        viewModel.init(this, prefs)
         viewModel.refreshAccessibilityState(this)
 
         setContent {
@@ -83,6 +87,10 @@ fun SettingsScreen(
     // Observamos el StateFlow. Compose se recompone automáticamente cuando cambia.
     val sentido by viewModel.sentido.collectAsStateWithLifecycle()
     val isAccessibilityEnabled by viewModel.isAccessibilityEnabled.collectAsStateWithLifecycle()
+    val isHostileModeEnabled by viewModel.isHostileModeEnabled.collectAsStateWithLifecycle()
+    val selectedHostilePackages by viewModel.selectedHostilePackages.collectAsStateWithLifecycle()
+    val availableApps by viewModel.availableApps.collectAsStateWithLifecycle()
+    var showAppPicker by remember { mutableStateOf(false) }
 
     // Refrescamos el estado de Accesibilidad cada vez que el usuario vuelve a la App
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -163,6 +171,155 @@ fun SettingsScreen(
             Text(stringResource(R.string.mode_read), fontSize = 16.sp)
         }
 
+        Spacer(Modifier.height(24.dp))
+
+        HostileModeCard(
+            isHostileModeEnabled = isHostileModeEnabled,
+            selectedPackages = selectedHostilePackages,
+            availableApps = availableApps,
+            onModeChanged = { enabled -> viewModel.setHostileModeEnabled(enabled, prefs) },
+            onOpenAppPicker = { showAppPicker = true }
+        )
+
         Spacer(Modifier.weight(2f))
     }
+
+    if (showAppPicker) {
+        HostileAppPickerDialog(
+            apps = availableApps,
+            selectedPackages = selectedHostilePackages,
+            onDismiss = { showAppPicker = false },
+            onTogglePackage = { packageName -> viewModel.toggleHostilePackage(packageName, prefs) }
+        )
+    }
+}
+
+@Composable
+private fun HostileModeCard(
+    isHostileModeEnabled: Boolean,
+    selectedPackages: Set<String>,
+    availableApps: List<InstalledAppInfo>,
+    onModeChanged: (Boolean) -> Unit,
+    onOpenAppPicker: () -> Unit
+) {
+    val selectedLabels = remember(selectedPackages, availableApps) {
+        availableApps
+            .filter { selectedPackages.contains(it.packageName) }
+            .take(4)
+            .joinToString { it.label }
+    }
+
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.hostile_mode_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        text = stringResource(R.string.hostile_mode_desc),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Switch(
+                    checked = isHostileModeEnabled,
+                    onCheckedChange = onModeChanged
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = onOpenAppPicker,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.hostile_mode_choose_apps))
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            val summary = when {
+                selectedPackages.isEmpty() -> stringResource(R.string.hostile_mode_none_selected)
+                selectedLabels.isBlank() -> stringResource(
+                    R.string.hostile_mode_selected_count,
+                    selectedPackages.size
+                )
+                selectedPackages.size <= 4 -> stringResource(
+                    R.string.hostile_mode_selected_apps,
+                    selectedLabels
+                )
+                else -> stringResource(
+                    R.string.hostile_mode_selected_with_count,
+                    selectedLabels,
+                    selectedPackages.size
+                )
+            }
+
+            Text(
+                text = summary,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun HostileAppPickerDialog(
+    apps: List<InstalledAppInfo>,
+    selectedPackages: Set<String>,
+    onDismiss: () -> Unit,
+    onTogglePackage: (String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.hostile_mode_choose_apps)) },
+        text = {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp)
+            ) {
+                items(apps, key = { it.packageName }) { app ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onTogglePackage(app.packageName) }
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = selectedPackages.contains(app.packageName),
+                            onCheckedChange = { onTogglePackage(app.packageName) }
+                        )
+                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                            Text(app.label, style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                text = app.packageName,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.hostile_mode_done))
+            }
+        }
+    )
 }
