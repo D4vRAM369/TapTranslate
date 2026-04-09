@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Fondo circular suave (Aura del "Tap") -->
+    <path
+        android:fillColor="#1AFFFFFF"
+        android:pathData="M54,54m-35,0a35,35 0,1 1,70 0a35,35 0,1 1,-70 0" />
+    
+    <!-- Icono de Portapapeles / Documento -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M65,30H43c-2.8,0 -5,2.2 -5,5v38c0,2.8 2.2,5 5,5h22c2.8,0 5,-2.2 5,-5V35C70,32.2 67.8,30 65,30zM54,34c1.1,0 2,0.9 2,2s-0.9,2 -2,2s-2,-0.9 -2,-2S52.9,34 54,34zM66,68H42V40h24V68z" />
+
+    <!-- Texto ES <-> EN (Estilizado) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,48h4v2h-4zM56,48h4v2h-4zM48,58h4v2h-4zM56,58h4v2h-4z" />
+        
+    <!-- Efecto de Onda de "Tap" -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:pathData="M54,80m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0" />
+</vector>
