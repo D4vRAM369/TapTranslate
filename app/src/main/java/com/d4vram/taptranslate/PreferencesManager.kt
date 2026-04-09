@@ -4,10 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 
 /**
- * [Profe - PBL Fix #4]: Aplicamos AppConstants.
- *
- * ANTES: prefs.getBoolean("VISTO_ONBOARDING", false) — magic string ❌
- * DESPUÉS: prefs.getBoolean(AppConstants.KEY_ONBOARDING_SEEN, false) — constante ✅
+ * Thin wrapper around SharedPreferences for app-level persistence.
  */
 class PreferencesManager(context: Context) {
 

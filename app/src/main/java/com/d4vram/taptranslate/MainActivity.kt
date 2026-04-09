@@ -33,9 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
  */
 class MainActivity : ComponentActivity() {
 
-    // viewModels() - extensión de AndroidX que:
-    // 1. Crea el ViewModel la primera vez
-    // 2. Lo reutiliza si la Activity se recrea (rotación de pantalla)
+    // viewModels() returns existing instance or creates one, surviving configuration changes.
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,8 +72,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * [Profe]: Composable separado — testeable de forma independiente.
- * Recibe lo que necesita desde fuera (inyección de dependencias light).
+ * Stateless settings screen — receives all state from MainViewModel.
  */
 @Composable
 fun SettingsScreen(

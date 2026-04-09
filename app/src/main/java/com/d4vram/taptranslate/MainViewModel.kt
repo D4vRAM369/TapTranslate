@@ -9,18 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * [Profe - PBL Fix #3]: ViewModel — La memoria que sobrevive a todo.
- *
- * ANTES (❌ estado en onCreate — se pierde al rotar pantalla):
- *   var sentido by remember { mutableStateOf(prefs.getSentidoTraduccion()) }
- *
- * DESPUÉS (✅ estado en ViewModel — sobrevive rotaciones y recreaciones):
- *   val sentido: StateFlow<String> = _sentido.asStateFlow()
- *
- * ¿Qué es StateFlow?
- *   Es un contenedor observable de un valor. Cuando su valor cambia,
- *   Compose recompone (redibuja) automáticamente solo las partes afectadas.
- *   Es el equivalente Compose de LiveData, pero moderno y basado en Coroutines.
+ * Holds and manages UI state for the settings screen.
+ * Survives Activity recreation (screen rotation, system kill).
  */
 class MainViewModel : ViewModel() {
 

@@ -21,9 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * [Profe]: Aquí creamos el carrusel de bienvenida.
- * Usamos 'HorizontalPager' (que está dentro de Compose Foundation) para crear ese 
- * efecto deslizable a los lados tan moderno.
+ * First-run onboarding carousel using HorizontalPager.
+ * Shown once and dismissed permanently via PreferencesManager.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -77,7 +76,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // [Profe]: Esta fila dibujará los "puntitos" mágicos que indican el progreso.
+        // Dot indicators — one per page, highlighted for the current page.
         Row(
             Modifier
                 .height(50.dp)

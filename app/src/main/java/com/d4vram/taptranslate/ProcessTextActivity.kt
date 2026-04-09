@@ -13,10 +13,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * [Profe - PBL Fix #5]:
- * Ahora gestionamos correctamente los dos caminos:
- *   - Result.success → mostrar/pegar la traducción
- *   - Result.failure → mostrar Toast de error sin pegar nada
+ * Invisible Activity that intercepts text from ACTION_PROCESS_TEXT (3-dot menu)
+ * and ACTION_SEND (Share menu), translates it, then either replaces or copies the result.
  */
 class ProcessTextActivity : ComponentActivity() {
 

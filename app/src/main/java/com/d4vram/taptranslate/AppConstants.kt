@@ -1,17 +1,8 @@
 package com.d4vram.taptranslate
 
 /**
- * [Profe - PBL]: Un 'object' en Kotlin es un Singleton automático.
- * Aquí centralizamos TODAS las cadenas mágicas del proyecto.
- *
- * ANTES (❌ magic strings dispersas en 4 archivos):
- *   prefs.getString("SENTIDO_TRADUCCION", "ES_EN")
- *
- * DESPUÉS (✅ constante única):
- *   prefs.getString(AppConstants.KEY_TRANSLATION_DIR, AppConstants.SENTIDO_ES_EN)
- *
- * Ventaja: Si mañana cambias el nombre de la clave, lo cambias aquí y
- * el compilador te avisa en cada sitio que lo use.
+ * Centralizes all magic strings used across the project.
+ * Changing a key or value here propagates automatically everywhere it's used.
  */
 object AppConstants {
 
