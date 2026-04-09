@@ -75,7 +75,7 @@ For read-only text in closed apps (Reddit posts, etc.):
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/d4vram/TapTranslate.git
+   git clone https://github.com/D4vRAM369/TapTranslate.git
    cd TapTranslate
    ```
 

@@ -20,4 +20,5 @@
     <string name="onboarding_title_3">3. 100% Local y Privado</string>
     <string name="onboarding_desc_3">La primera vez descargará 30MB del diccionario. Luego, todas las traducciones sucederán sin internet dentro de tu teléfono.</string>
     <string name="onboarding_btn_finish">¡Entendido, a traducir!</string>
+    <string name="translation_error">❌ Error al traducir. ¿Descargaste el modelo la primera vez?</string>
 </resources>

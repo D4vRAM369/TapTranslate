@@ -44,14 +44,10 @@ class AutoPasteService : AccessibilityService() {
     override fun onInterrupt() {}
 
     private fun pegarTextoAutomaticamente() {
-        // 3. Busca el "nodo" (dibujo) en pantalla activa que tiene actualmente el estado "Enfocado con Teclado".
         val targetNode = rootInActiveWindow?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-        
-        targetNode?.let { node ->
-            // 4. ¡LA MAGIA! Le exigimos a la caja que ejecute su acción innata de Pegar (Paste).
-            node.performAction(AccessibilityNodeInfo.ACTION_PASTE)
-            node.recycle() // Limpieza de memoria
-        }
+        targetNode?.performAction(AccessibilityNodeInfo.ACTION_PASTE)
+        // [Profe]: node.recycle() fue eliminado — deprecated desde API 33.
+        // El sistema operativo gestiona el ciclo de vida del nodo automáticamente.
     }
 
     override fun onDestroy() {
