@@ -32,7 +32,7 @@ class ProcessTextActivity : ComponentActivity() {
         val esSoloLectura = intent.getBooleanExtra(Intent.EXTRA_PROCESS_TEXT_READONLY, false) || intent.action == Intent.ACTION_SEND
 
         if (textoSeleccionado.isNullOrBlank()) {
-            Toast.makeText(this, "No hay texto seleccionado", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.no_selected_text), Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -60,7 +60,7 @@ class ProcessTextActivity : ComponentActivity() {
                     pasteIntent.setPackage(packageName)
                     sendBroadcast(pasteIntent)
                     
-                    Toast.makeText(this@ProcessTextActivity, "🌎 Auto-Pegando...", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ProcessTextActivity, getString(R.string.autopaste_toast), Toast.LENGTH_SHORT).show()
                 } else {
                     val intentRespuesta = Intent()
                     intentRespuesta.putExtra(Intent.EXTRA_PROCESS_TEXT, resultado)

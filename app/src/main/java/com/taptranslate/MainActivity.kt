@@ -20,6 +20,7 @@ import android.content.Context
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 
 class MainActivity : ComponentActivity() {
 
@@ -91,15 +92,15 @@ class MainActivity : ComponentActivity() {
                                     )
                                 ) {
                                     Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("⚠️ Súper-Autopegado Desactivado", fontWeight = FontWeight.Bold)
+                                        Text(text = stringResource(R.string.warning_title), fontWeight = FontWeight.Bold)
                                         Spacer(Modifier.height(4.dp))
-                                        Text("Toca aquí para ir a Accesibilidad y permitir que peguemos texto automáticamente en Reddit.", textAlign = TextAlign.Center, fontSize = 12.sp)
+                                        Text(text = stringResource(R.string.warning_desc), textAlign = TextAlign.Center, fontSize = 12.sp)
                                     }
                                 }
                             }
                             
                             Text(
-                                text = "Panel de Ajustes", 
+                                text = stringResource(R.string.settings_panel), 
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -107,7 +108,7 @@ class MainActivity : ComponentActivity() {
                             Spacer(Modifier.height(16.dp))
                             
                             Text(
-                                text = "Selecciona cómo quieres que actúe el traductor en menús de texto en este momento:",
+                                text = stringResource(R.string.settings_desc),
                                 textAlign = TextAlign.Center,
                                 style = MaterialTheme.typography.bodyLarge
                             )
@@ -126,7 +127,7 @@ class MainActivity : ComponentActivity() {
                                     contentColor = if (sentido == "ES_EN") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             ) {
-                                Text("Modo Escribir (Español ➔ Inglés)", fontSize = 16.sp)
+                                Text(stringResource(R.string.mode_write), fontSize = 16.sp)
                             }
 
                             Spacer(Modifier.height(16.dp))
@@ -143,7 +144,7 @@ class MainActivity : ComponentActivity() {
                                     contentColor = if (sentido == "EN_ES") MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             ) {
-                                Text("Modo Leer (Inglés ➔ Español)", fontSize = 16.sp)
+                                Text(stringResource(R.string.mode_read), fontSize = 16.sp)
                             }
                             
                             Spacer(Modifier.weight(2f))

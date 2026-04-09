@@ -2,4 +2,22 @@
     <string name="app_name">TapTranslate</string>
     <string name="process_text_label">TapTranslate</string>
     <string name="accessibility_desc">Permite a TapTranslate inyectar texto y pegarlo automáticamente en aplicaciones como Reddit o WhatsApp donde los permisos clásicos están censurados.</string>
+
+    <string name="no_selected_text">No hay texto seleccionado</string>
+    <string name="copied_toast">🌎 Copiado: %1$s</string>
+    <string name="autopaste_toast">🌎 Auto-Pegando...</string>
+    <string name="settings_panel">Panel de Ajustes</string>
+    <string name="settings_desc">Selecciona cómo quieres que actúe el traductor en menús de texto en este momento:</string>
+    <string name="mode_write">Modo Escribir (Español ➔ Inglés)</string>
+    <string name="mode_read">Modo Leer (Inglés ➔ Español)</string>
+    <string name="warning_title">⚠️ Súper-Autopegado Desactivado</string>
+    <string name="warning_desc">Toca aquí para ir a Accesibilidad y permitir que peguemos texto automáticamente en Reddit.</string>
+    
+    <string name="onboarding_title_1">1. Actúa en las sombras</string>
+    <string name="onboarding_desc_1">TapTranslate no tiene una pantalla que debas abrir todos los días. Opera como un botón escondido en tu móvil para máxima rapidez.</string>
+    <string name="onboarding_title_2">2. ¿Cómo se usa?</string>
+    <string name="onboarding_desc_2">Cuando escribas un comentario (ej. en Reddit), subraya el texto, presiona los 3 puntitos de opciones, y elige TapTranslate.</string>
+    <string name="onboarding_title_3">3. 100% Local y Privado</string>
+    <string name="onboarding_desc_3">La primera vez descargará 30MB del diccionario. Luego, todas las traducciones sucederán sin internet dentro de tu teléfono.</string>
+    <string name="onboarding_btn_finish">¡Entendido, a traducir!</string>
 </resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TapTranslate</string>
+    <string name="process_text_label">TapTranslate</string>
+    <string name="accessibility_desc">Allows TapTranslate to inject text and automatically paste it in apps like Reddit or WhatsApp where text-selection permissions are restricted.</string>
+
+    <string name="no_selected_text">No text selected</string>
+    <string name="copied_toast">🌎 Copied: %1$s</string>
+    <string name="autopaste_toast">🌎 Auto-Pasting...</string>
+    <string name="settings_panel">Settings Panel</string>
+    <string name="settings_desc">Choose how the translator behaves in text menus right now:</string>
+    <string name="mode_write">Write Mode (Spanish ➔ English)</string>
+    <string name="mode_read">Read Mode (English ➔ Spanish)</string>
+    <string name="warning_title">⚠️ Super-Autopaste Disabled</string>
+    <string name="warning_desc">Tap here to go to Accessibility settings and allow us to auto-paste text over Reddit seamlessly.</string>
+    
+    <string name="onboarding_title_1">1. Works in the Shadows</string>
+    <string name="onboarding_desc_1">TapTranslate doesn\'t have a main app you need to open daily. It operates uniquely as a hidden context button for max speed.</string>
+    <string name="onboarding_title_2">2. How to use it?</string>
+    <string name="onboarding_desc_2">Highlight any text you type, click the 3-dots option menu, and select TapTranslate to convert it instantly.</string>
+    <string name="onboarding_title_3">3. 100% Local and Private</string>
+    <string name="onboarding_desc_3">A one-time 30MB dictionary download is required. After that, all translations happen internally, fully offline.</string>
+    <string name="onboarding_btn_finish">Got it, let\'s translate!</string>
+</resources>

@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -29,9 +30,9 @@ import androidx.compose.ui.unit.sp
 fun OnboardingScreen(onFinish: () -> Unit) {
     // Definimos las 3 páginas de contenido que vamos a mostrar.
     val paginas = listOf(
-        Pair("1. Actúa en las sombras", "TapTranslate no tiene una pantalla que debas abrir todos los días. Opera como un botón escondido en tu móvil para máxima rapidez."),
-        Pair("2. ¿Cómo se usa?", "Cuando escribas un comentario (ej. en Reddit), subraya el texto, presiona los 3 puntitos de opciones, y elige 'TapTranslate'."),
-        Pair("3. 100% Local & Privado", "La primera vez descargará 30MB del diccionario. Luego, todas las traducciones sucederán sin internet dentro de tu teléfono.")
+        Pair(stringResource(R.string.onboarding_title_1), stringResource(R.string.onboarding_desc_1)),
+        Pair(stringResource(R.string.onboarding_title_2), stringResource(R.string.onboarding_desc_2)),
+        Pair(stringResource(R.string.onboarding_title_3), stringResource(R.string.onboarding_desc_3))
     )
 
     // El PagerState guarda en qué página nos encontramos (0, 1 o 2).
@@ -105,7 +106,7 @@ fun OnboardingScreen(onFinish: () -> Unit) {
                     .fillMaxWidth(0.7f)
                     .padding(bottom = 32.dp)
             ) {
-                Text(text = "¡Entendido, a traducir!", fontSize = 18.sp)
+                Text(text = stringResource(R.string.onboarding_btn_finish), fontSize = 18.sp)
             }
         } else {
             // Un espaciador invisible para que el botón no haga que los textos salten arriba y abajo
