@@ -7,6 +7,7 @@
 [![ML Kit](https://img.shields.io/badge/IA-Google%20ML%20Kit-4285F4?logo=google)](https://developers.google.com/ml-kit/language/translation)
 [![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-03DAC5?logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
 [![Licencia](https://img.shields.io/badge/Licencia-MIT-yellow)](LICENSE)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/D4vRAM369/TapTranslate)
 
 ---
 
