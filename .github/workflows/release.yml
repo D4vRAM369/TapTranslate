@@ -27,27 +27,32 @@ jobs:
     - name: Build Release APK
       run: ./gradlew assembleRelease
       
-    - name: Setup build tool version variable
-      shell: bash
+    - name: Sign APK (Manual Strategy)
       run: |
+        # 1. Recuperar la llave desde el secreto Base64
+        echo "${{ secrets.SIGNING_KEY }}" | base64 -d > release.jks
+        
+        # 2. Detectar herramientas de construcción modernas
         BUILD_TOOL_VERSION=$(ls $ANDROID_SDK_ROOT/build-tools/ | tail -n 1)
-        echo "BUILD_TOOL_VERSION=$BUILD_TOOL_VERSION" >> $GITHUB_ENV
-
-    - name: Sign APK
-      uses: r0adkll/sign-android-release@v1
-      id: sign_app
-      with:
-        releaseDirectory: app/build/outputs/apk/release
-        signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-        alias: ${{ secrets.ALIAS }}
-        keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-        keyPassword: ${{ secrets.KEY_PASSWORD }}
-        buildToolsVersion: ${{ env.BUILD_TOOL_VERSION }}
+        APKSIGNER=$ANDROID_SDK_ROOT/build-tools/$BUILD_TOOL_VERSION/apksigner
+        
+        # 3. Firmar la APK
+        # Buscamos la APK generada (suele ser app-release-unsigned.apk o app-release.apk)
+        SOURCE_APK=$(find app/build/outputs/apk/release/ -name "*.apk" | head -n 1)
+        $APKSIGNER sign --ks release.jks \
+          --ks-key-alias "${{ secrets.ALIAS }}" \
+          --ks-pass pass:"${{ secrets.KEY_STORE_PASSWORD }}" \
+          --key-pass pass:"${{ secrets.KEY_PASSWORD }}" \
+          --out app/build/outputs/apk/release/TapTranslate-v${{ github.ref_name }}-signed.apk \
+          $SOURCE_APK
+          
+        # 4. Verificar la firma para total seguridad
+        $APKSIGNER verify app/build/outputs/apk/release/TapTranslate-v${{ github.ref_name }}-signed.apk
       
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
-        files: ${{ steps.sign_app.outputs.signedReleaseFile }}
+        files: app/build/outputs/apk/release/TapTranslate-v${{ github.ref_name }}-signed.apk
         name: TapTranslate v${{ github.ref_name }}
         tag_name: ${{ github.ref }}
         body: |
