@@ -18,9 +18,8 @@ android {
 
     signingConfigs {
         create("release") {
-            // Read from gradle.properties or System environments (CI)
             val storeFilePath = project.findProperty("RELEASE_STORE_FILE") as String?
-            if (storeFilePath != null) {
+            if (storeFilePath != null && file(storeFilePath).exists()) {
                 storeFile = file(storeFilePath)
                 storePassword = project.findProperty("RELEASE_STORE_PASSWORD") as String?
                 keyAlias = project.findProperty("RELEASE_KEY_ALIAS") as String?
@@ -32,7 +31,11 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("release")
+            // Solo aplicamos la firma si se configuró correctamente arriba
+            val signing = signingConfigs.getByName("release")
+            if (signing.storeFile != null) {
+                signingConfig = signing
+            }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
