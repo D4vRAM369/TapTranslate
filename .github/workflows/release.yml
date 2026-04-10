@@ -27,6 +27,12 @@ jobs:
     - name: Build Release APK
       run: ./gradlew assembleRelease
       
+    - name: Setup build tool version variable
+      shell: bash
+      run: |
+        BUILD_TOOL_VERSION=$(ls $ANDROID_SDK_ROOT/build-tools/ | tail -n 1)
+        echo "BUILD_TOOL_VERSION=$BUILD_TOOL_VERSION" >> $GITHUB_ENV
+
     - name: Sign APK
       uses: r0adkll/sign-android-release@v1
       id: sign_app
@@ -36,6 +42,7 @@ jobs:
         alias: ${{ secrets.ALIAS }}
         keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
         keyPassword: ${{ secrets.KEY_PASSWORD }}
+        buildToolsVersion: ${{ env.BUILD_TOOL_VERSION }}
       
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
