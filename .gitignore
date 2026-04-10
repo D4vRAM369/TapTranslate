@@ -19,3 +19,6 @@ docs/
 # Dev tooling — never commit
 .omx/
 .codex
+
+# Android Signing — NEVER COMMIT
+*.jks

@@ -16,9 +16,23 @@ android {
         versionName = "1.0"
     }
 
+    signingConfigs {
+        create("release") {
+            // Read from gradle.properties or System environments (CI)
+            val storeFilePath = project.findProperty("RELEASE_STORE_FILE") as String?
+            if (storeFilePath != null) {
+                storeFile = file(storeFilePath)
+                storePassword = project.findProperty("RELEASE_STORE_PASSWORD") as String?
+                keyAlias = project.findProperty("RELEASE_KEY_ALIAS") as String?
+                keyPassword = project.findProperty("RELEASE_KEY_PASSWORD") as String?
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
